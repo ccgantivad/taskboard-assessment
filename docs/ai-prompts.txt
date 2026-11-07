@@ -1,0 +1,58 @@
+1. ENVIRONMENT AUDIT
+Read AGENTS.md and docs/*.md. Inspect installed tools and the repository without
+changing global settings. Verify .NET 10 SDK, Node 24 >=24.15, npm, Git, Docker
+Linux engine and SQL Server readiness. Report exact versions and missing items.
+Do not read or print passwords. Do not claim runtime validation without running it.
+
+2. FIRST VERTICAL SLICE
+Implement only create/list users using controllers, service, repository, EF Core,
+SQL Server and DTOs. Follow the canonical schema. Include validation and focused
+tests. Build, run the checks, and report changed files and actual command results.
+Stop after this slice so I can read the diff and explain it.
+
+3. TASKS AND JSON
+Implement task creation/listing and the status update contract. Keep the only
+forbidden transition Pending -> Done. Add user/status/priority filters with JSON
+priority evaluated by SQL Server. Show evidence from a real SQL Server test for
+the JSON filter and malformed JSON constraint. Keep changes within backend and
+database paths. Explain the generated SQL strategy.
+
+4. ANGULAR
+Read the agreed API contract. Build a standalone Angular task page with a reactive
+creation form, user dropdown, task list, status filter, status change controls,
+loading/empty/error states and server ProblemDetails messages. Use the agreed
+API URL/proxy. Build and run meaningful UI checks. Do not change backend contracts.
+
+5. INDEPENDENT REVIEW
+Review the branch against docs/requirements.md. Use one read-only agent for
+backend/SQL JSON and one for Angular/acceptance gaps if subagents are available.
+Wait for both. Return prioritized findings with file references and reproduction
+steps. Do not modify files. Check transition persistence, enum validation, JSON
+translation, SQL injection, FK/index, 201 Location and README reproducibility.
+
+6. EXPLAIN AND DEFEND
+Ask me one interview question at a time about a decision in this implementation.
+Use B2 English. After I answer, correct technical inaccuracies and give concise
+English feedback. Start with why the transition rule belongs in the service.
+
+7. DELIVERY AUDIT
+Follow README from a fresh checkout or clean working directory. Run every
+mandatory acceptance check. Produce a requirement-to-evidence table and exact
+remaining gaps. Do not publish or push unless I explicitly request that action.
+
+8. TECHNICAL LEAD DELEGATION
+First freeze docs/api-contract.md and identify any missing decisions. Then assign
+one implementation agent ownership of backend/ and tests/, and another ownership
+of frontend/. The database owner keeps database/ and schema mappings aligned.
+Do not allow simultaneous edits to shared contracts or configuration. Integrate
+one verified slice at a time. A separate read-only reviewer checks acceptance,
+failure cases and reproducibility. Report blockers, owners and evidence, not
+just percentages complete. Ask me to explain each material tradeoff before the
+next stage so I can defend the implementation as technical lead.
+
+9. LEAD DEFENSE PRACTICE
+Review docs/decisions.md and the actual implementation. Ask one scenario question
+at a time: concurrent updates, invalid transitions, JSON schema evolution, failed
+deployments, or a teammate proposing extra architecture during the deadline.
+Evaluate my prioritization, technical reasoning and communication. Use B2 English
+and give concise technical and language feedback after each answer.

@@ -1,0 +1,18 @@
+PACKAGE VALIDATION - 07 NOVEMBER 2026
+
+Performed in the preparation environment:
+- VS Code JSON files parsed successfully.
+- Compose YAML parsed; loopback SQL binding, named volume, read-only script
+  mount and password environment reference checked structurally.
+- Documentation paths, SQL filenames and .NET solution names checked.
+- Synthetic SQL examples and schema constraints reviewed statically.
+- Final archive integrity checked.
+
+Not performed:
+- PowerShell execution (pwsh is unavailable in this environment).
+- Docker/SQL Server startup or SQL script execution (Docker is unavailable).
+- API/UI builds or tests (application implementation is not part of this kit).
+- Configuration, installations or sign-in on the user's own computer.
+
+Use START-HERE.txt, run the preflight locally, then verify the supplied SQL
+against SQL Server. Record the actual commands and outcomes in the final README.

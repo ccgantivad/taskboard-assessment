@@ -1,0 +1,32 @@
+# Local credentials
+.env
+.env.*
+!.env.example
+appsettings.Local.json
+appsettings.*.Local.json
+*.pfx
+*.key
+
+# .NET
+**/bin/
+**/obj/
+TestResults/
+*.user
+*.suo
+
+# Angular / Node
+node_modules/
+frontend/node_modules/
+frontend/.angular/
+frontend/dist/
+coverage/
+playwright-report/
+test-results/
+
+# Editors / OS
+.vs/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Keep package-lock.json and the selected global.json in version control.

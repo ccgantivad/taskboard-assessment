@@ -1,0 +1,11 @@
+{
+  "editor.formatOnSave": true,
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/bin": true,
+    "**/obj": true,
+    "**/.angular": true
+  }
+}
