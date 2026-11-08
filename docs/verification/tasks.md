@@ -1,4 +1,4 @@
-# Tasks backend verification
+# Tasks API verification
 
 The tasks API follows Controller -> Service -> specific Repository -> EF Core /
 SQL Server. `TaskItem` maps to the existing `dbo.Tasks` table, including its
@@ -74,5 +74,5 @@ dotnet run --project backend/TaskBoard.Api --no-build --urls http://localhost:50
 - The synthetic HTTP task was deleted after verification. The original Pending
   seed task and both seed users remain unchanged. No generated test databases
   remain; the Docker volume was preserved.
-- No Angular application, authentication, migrations or unrelated infrastructure
-  was added. Business features outside the backend contract remain out of scope.
+- This verification covered the backend. Frontend results are recorded in
+  [frontend verification](frontend.md).

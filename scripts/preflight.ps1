@@ -31,7 +31,7 @@ if (Get-Command node -ErrorAction SilentlyContinue) {
     $nodeText = (& node --version).Trim()
     if ($nodeText -match '^v(\d+)\.(\d+)\.(\d+)') {
         if ([int]$Matches[1] -ne 24 -or [int]$Matches[2] -lt 15) {
-            Write-Host 'ACTION: This kit targets Node 24 LTS >=24.15.0 for Angular 22.'
+            Write-Host 'ACTION: TaskBoard requires Node 24 LTS >=24.15.0 for Angular 22.'
         }
     }
 }
@@ -50,5 +50,5 @@ if (Get-Command docker -ErrorAction SilentlyContinue) {
 }
 
 Write-Host 'No tools were installed and no repository files or secrets were read.'
-Write-Host 'Next: compare output with START-HERE.txt; complete missing prerequisites.'
+Write-Host 'Next: compare output with README.md; complete missing prerequisites.'
 if ($missing.Count -gt 0) { exit 1 }

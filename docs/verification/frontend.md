@@ -1,4 +1,4 @@
-﻿# Angular frontend verification
+# Frontend verification
 
 Angular CLI 22.2.6 generated frontend/ with standalone components, routing, SCSS,
 no SSR, and its Vitest unit-test builder. Installed Node is 24.16.0, npm 11.13.0.
@@ -55,7 +55,7 @@ loading/error/retry/no-user/empty states, assignee refresh and stale request
 cancellation. Production build succeeds without warnings after moving shared
 header styles out of the component budget. Runtime dependency audit reports
 zero vulnerabilities. Backend remains unchanged from checkpoint 9320285; its
-91-test result is recorded in tasks-slice.md.
+91-test result is recorded in [tasks verification](tasks.md).
 
 Real HTTP checks through the Angular proxy returned 200 for the application,
 users/tasks lists and combined filters; 201 for synthetic user/task creation;
@@ -74,9 +74,9 @@ because browser URL-policy enforcement is not supported for this Windows browser
 No further browser-control path was attempted. HTTP checks are not browser
 rendering, keyboard, responsiveness or visual evidence.
 
-## Manual browser results reported by the user: 7 November 2026
+## Candidate-performed manual verification: 7 November 2026
 
-The user confirmed that these checks passed in a real browser:
+Candidate Cristian Gantiva confirmed these checks passed in a real browser:
 
 - Task listing.
 - Creation of a task with an assigned user.
@@ -85,8 +85,8 @@ The user confirmed that these checks passed in a real browser:
 - Persistence after reloading the page.
 - Manual access to the public GitHub repository.
 
-These are user-reported manual results. Automated browser interaction remained
-unavailable; no automated browser walkthrough is claimed. The user did not
+These are candidate-reported manual results. Automated browser interaction remained
+unavailable; no automated browser walkthrough is claimed. The candidate did not
 report the additional checks below (such as user creation, priority/user filters,
 failure-state behavior, keyboard use or responsive layouts), so those remain
 unverified. Manual demo record identifiers and cleanup were not reported.
@@ -113,7 +113,7 @@ Start API and frontend in separate terminals using the root README commands.
    Verify no horizontal page overflow and visible keyboard focus.
 8. Record and clean up only the synthetic manual demo records, preserving seeds.
 
-The core checks listed above passed according to the user. This extended list
+The core checks listed above passed according to the candidate. This extended list
 also includes checks beyond the reported scope; do not treat it as fully passed.
 Any manual demo records should be identified before cleanup; no additional
 cleanup was performed or claimed as part of this documentation-only update.

@@ -1,54 +1,46 @@
-# TaskBoard
+# TaskBoard — Michael Page Technical Assessment
 
-Fullstack technical assessment with a .NET 10 / EF Core 10 controller-based API,
-SQL Server 2022, and Angular 22 standalone components with typed reactive forms.
+**Candidate: Cristian Gantiva**
 
-Users can be created and listed. Tasks support creation, assignment, combined
-filters and status updates. Additional metadata is validated as a JSON object,
-stored in NVARCHAR(MAX), and filtered inside SQL Server using JSON_VALUE.
+Task management application built with .NET 10, EF Core 10, SQL Server 2022
+and Angular 22. It supports user creation, assigned tasks, status updates and
+combined user/status/priority filters. Task metadata is stored as a JSON object
+in NVARCHAR(MAX); priority filtering executes in SQL Server through JSON_VALUE.
 
 ## Prerequisites
 
-- Git.
-- .NET SDK **10.0.400**; global.json uses rollForward latestPatch.
-- Node.js **24 LTS >=24.15.0**; verified with **24.16.0**, npm **11.13.0**.
-- Docker Desktop with Linux containers / WSL2 on Windows x64, or equivalent
-  supported x64 Docker setup. The SQL Server Linux image requires x86-64.
-- An editor with a private .NET user-secrets editor, such as C# Dev Kit in VS Code.
+- Git and .NET SDK **10.0.400** (global.json uses rollForward latestPatch).
+- Node **24 LTS >=24.15.0**; verified with **24.16.0** and npm **11.13.0**.
+- Docker with Linux containers on a supported x64 host; Docker Desktop with WSL2
+  is suitable for Windows.
+- A private .NET user-secrets editor, such as C# Dev Kit in VS Code.
 
-The committed package-lock.json resolves Angular **22.2.5**, CLI **22.2.6**,
-TypeScript **6.0.3** and Vitest **5.1.0**. EF Core SQL Server is pinned to
-**10.0.11**. A direct Pkcs **9.0.22** override fixes the vulnerable transitive
-9.0.11 dependency selected by SqlClient.
+The committed lockfile resolves Angular 22.2.5, CLI 22.2.6, TypeScript 6.0.3 and
+Vitest 5.1.0. EF Core SQL Server is pinned to 10.0.11. Use the local CLI through
+npm; no global Angular CLI installation is needed.
 
-Run all commands below from the repository root. Docker / SQL commands are
-written for PowerShell. No global Angular CLI installation is required.
+## Local setup
 
-## 1. Initialize SQL Server
+Run commands from the repository root. Docker commands below use PowerShell.
 
-Create the local environment file:
+### Database
 
 ~~~powershell
 Copy-Item .env.example .env
 ~~~
 
-Edit .env privately and replace its MSSQL_SA_PASSWORD placeholder with a unique
-strong local password. Never commit that file or paste the value into logs.
-For a simple unquoted Compose environment value, avoid interpolation characters
-such as $ and #. Reuse the same actual SQL login credentials in the API's private
-configuration below; changing a container environment variable does not reset
-the password stored in an already initialized SQL Server volume.
-
-Start SQL Server and wait for the health check:
+Edit .env privately and replace the MSSQL_SA_PASSWORD placeholder with a unique
+strong password. For a simple unquoted Compose value, avoid $ and #. Do not
+commit .env or put credentials in source files or command history.
 
 ~~~powershell
 docker compose up -d --wait
 docker compose ps
 ~~~
 
-The service publishes only 127.0.0.1:1433, mounts database/ read-only at /scripts
-and persists data in the named sqlserver-data volume. Run these scripts
-sequentially; stop if any command exits unsuccessfully:
+The service binds 127.0.0.1:1433, mounts database/ at /scripts read-only and uses
+the persistent sqlserver-data volume. Run the scripts in order, stopping on any
+failure; the password expands only inside the container:
 
 ~~~powershell
 docker compose exec -T sqlserver bash -c 'SQLCMDPASSWORD=$MSSQL_SA_PASSWORD /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -b -i /scripts/001_create.sql'
@@ -57,42 +49,34 @@ docker compose exec -T sqlserver bash -c 'SQLCMDPASSWORD=$MSSQL_SA_PASSWORD /opt
 docker compose exec -T sqlserver bash -c 'SQLCMDPASSWORD=$MSSQL_SA_PASSWORD /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -b -i /scripts/004_constraint_checks.sql'
 ~~~
 
-The password expands only inside the container; these commands do not print it.
-
 | Script | Purpose |
 | --- | --- |
-| database/001_create.sql | Canonical TaskBoard database, Users/Tasks tables, PK/FK, exact-case status and JSON object constraints, named task index |
-| database/002_seed.sql | Two synthetic users and one Pending demo task; does not duplicate those seeds on rerun |
-| database/003_json_examples.sql | Native JSON queries; optional JSON_MODIFY demonstration is rolled back |
-| database/004_constraint_checks.sql | Reject malformed JSON, JSON arrays and orphan tasks; probe writes are rolled back |
+| [001_create.sql](database/001_create.sql) | Canonical schema, PK/FK, JSON/status constraints and named task index |
+| [002_seed.sql](database/002_seed.sql) | Two demo users and one Pending task; repeatable without duplicate seeds |
+| [003_json_examples.sql](database/003_json_examples.sql) | ISJSON, JSON_VALUE, JSON_QUERY and OPENJSON examples; JSON_MODIFY demo rolls back |
+| [004_constraint_checks.sql](database/004_constraint_checks.sql) | Reject malformed/non-object JSON and orphan tasks; probes roll back |
 
-SQL scripts are the **only schema setup path**. EF Fluent mappings match them;
-there are no migrations or EnsureCreated calls. The creation script preserves
-existing tables/data but does not upgrade a pre-existing incompatible schema.
+SQL scripts are the schema setup path; there are no migrations or EnsureCreated
+calls. Creation preserves existing tables/data but does not upgrade an
+incompatible schema. Use docker compose down to preserve the volume; down -v
+erases it. Changing the environment password does not reset the login stored in
+an existing volume.
 
-Use docker compose down to stop and preserve data. Do not use down -v unless
-you deliberately intend to erase the database volume.
+### Private API configuration
 
-## 2. Configure the API connection privately
-
-The API uses standard ASP.NET configuration and its committed UserSecretsId.
-Open the backend/TaskBoard.Api project's user-secrets editor and set
-ConnectionStrings:DefaultConnection privately. A shape example, with a placeholder
-that must be replaced only in your private editor:
+In the backend/TaskBoard.Api project's user-secrets editor, set
+ConnectionStrings:DefaultConnection using the same SQL login credentials:
 
 ~~~text
 Server=tcp:127.0.0.1,1433;Database=TaskBoard;User Id=sa;Password=<your-local-password>;Encrypt=True;TrustServerCertificate=True
 ~~~
 
-Do not put an actual password in this README, appsettings, frontend files, command
-history or Git. user-secrets is a development convenience outside the repository,
-not a production secret store. The application consumes it normally; verification
-does not list or print stored values.
+Replace the placeholder only in private configuration. The committed
+UserSecretsId enables normal ASP.NET configuration loading; actual secrets remain
+outside the repository. TrustServerCertificate=True and sqlcmd -C are local
+development settings, not production TLS configuration.
 
-TrustServerCertificate=True and sqlcmd -C are for this local setup. Production
-requires an appropriate application login, validated TLS and private configuration.
-
-## 3. Start the API and frontend
+### API and frontend
 
 Terminal one:
 
@@ -109,201 +93,87 @@ npm --prefix frontend ci
 npm --prefix frontend start
 ~~~
 
-Open **http://localhost:4200/**. Angular uses relative /api URLs; its development
-proxy targets http://127.0.0.1:5000. Keep the explicit API --urls argument:
-the generated launch profile otherwise defaults to port 5237.
+Open **http://localhost:4200/**. Relative /api requests use the Angular development
+proxy at http://127.0.0.1:5000. The explicit API --urls argument overrides the
+generated launch profile's port 5237. Production output is
+frontend/dist/taskboard/browser/; a production host must route /api separately.
 
-The production frontend build is in frontend/dist/taskboard/browser/.
-Its host must route /api to the backend separately; the development proxy is
-not included in static production output. No hosted application is deployed.
-
-## API behavior
+## API summary
 
 | Method | Route | Success |
 | --- | --- | --- |
-| POST | /api/users | 201 user DTO; no Location header |
-| GET | /api/users | 200 user array |
-| POST | /api/tasks | 201 task DTO; no Location header |
-| GET | /api/tasks?userId=1&status=Pending&priority=High | 200 task array |
+| POST / GET | /api/users | 201 user DTO / 200 array |
+| POST / GET | /api/tasks | 201 task DTO / 200 array |
 | PUT | /api/tasks/{id}/status | 200 updated task DTO |
 
-Names and emails are trimmed before validation; limits are 120 and 254
-characters. Email format is validated. Duplicate emails are allowed.
+GET /api/tasks accepts optional userId, status and priority query parameters.
+Creation returns no Location header. Names, emails and titles are trimmed;
+limits are 120, 254 and 200 characters. Email format is validated; duplicate
+emails are allowed. Tasks require an existing assignee and start Pending.
 
-Task titles are required, trimmed and limited to 200 characters. An existing
-assignee is mandatory. Tasks start Pending. Status accepts only exact
-Pending, InProgress and Done strings; numeric, unknown and differently cased
-values are rejected. Only Pending -> Done is forbidden (409). Other transitions
-and same-state updates are allowed. Unknown tasks return 404.
+Only exact Pending, InProgress and Done strings are accepted. Pending -> Done
+returns 409; other transitions and same-state updates are allowed. Unknown tasks
+return 404. Invalid fields/filters return 400. ProblemDetails responses contain
+trace IDs; unexpected faults return generic 500 messages.
 
-Optional filters combine in SQL. Invalid, empty or repeated filter values return
-400. Lists sort by CreatedAt descending, then Id descending. DTOs return assignee
-name, an explicit UTC timestamp and object-valued additionalData.
-
-Example creation body:
-
-~~~json
-{
-  "title": "Synthetic assessment task",
-  "assignedUserId": 1,
-  "additionalData": {
-    "priority": "High",
-    "dueDate": "2026-11-10",
-    "tags": ["review", "sql"],
-    "metadata": { "source": "manual-demo" }
-  }
-}
-~~~
-
-Omitted additionalData becomes {}. Supplied metadata must be an object;
-priority is Low/Medium/High, dueDate is a valid yyyy-MM-dd date, tags is a string
-array, and metadata is a free object. Unknown fields are preserved; duplicate
-top-level keys are rejected. The frontend exposes the three optional fields
-priority, date and comma-separated tags.
-
-Validation and expected errors use ProblemDetails with trace IDs. Unexpected
-faults return generic 500 ProblemDetails without SQL or credential details.
+Task DTOs include assignedUserName, a UTC createdAt timestamp and object-valued
+additionalData. Optional metadata fields are priority (Low/Medium/High), dueDate
+(valid yyyy-MM-dd), tags (string array) and metadata (free object). Omitted
+additionalData defaults to {}. Lists sort by CreatedAt descending, then Id
+descending. See the [API contract](docs/api-contract.md) for request examples.
 
 ## Architecture and decisions
 
-~~~text
-backend/TaskBoard.Api/
-  Controllers -> Services -> specific Repositories -> EF Core / SQL Server
-  DTOs        request/response boundaries
-  Models      User and TaskItem (mapped to dbo.Users and dbo.Tasks)
-  Data        DbContext, Fluent mappings and native JSON_VALUE translation
-tests/TaskBoard.Tests/
-  focused service tests and real SQL Server integration tests
-frontend/src/app/
-  api/        typed DTOs and HttpClient services
-  shared/     validation and ProblemDetails messages
-  tasks/      task page, creation form and status control
-  users/      compact user creation form
-~~~
+- One API project: Controllers -> Services -> specific Repositories -> EF/SQL.
+  DTOs define transport boundaries; TaskItem maps to dbo.Tasks.
+- Services own transition rules. No-tracking reads project DTO fields; filters,
+  ordering and native JSON_VALUE queries execute in SQL with parameterized values.
+- Fluent mappings follow the canonical SQL scripts. JSON is validated with
+  ISJSON(AdditionalData, OBJECT) and stored once in NVARCHAR(MAX).
+- Angular uses standalone components, strict TypeScript/templates and typed
+  reactive forms. switchMap cancels stale filters; submission guards prevent
+  duplicate writes. Status changes display only after API confirmation.
+- Original status is an EF concurrency token. Conflicting persisted state returns
+  409, including on same-state writes. This is not general row versioning and
+  cannot detect a change away from and back to the original status.
 
-- One layered API project keeps the timed assessment understandable. Controllers
-  stay thin; the service owns transition rules; repositories own persistence.
-- Reads use no-tracking DTO projection. Filtering, ordering and JSON priority
-  queries execute in SQL Server with parameterized values.
-- The frontend uses standalone components, strict TypeScript/templates and
-  conventional typed reactive forms. switchMap cancels stale filter responses.
-  Duplicate writes are guarded; status changes appear only after API success.
-- Status is an EF concurrency token. Every write, including same-state requests,
-  compares the persisted status with the one validated by the service. A
-  conflicting state at save returns 409 without overwriting it.
-- **Concurrency limitation:** the original-status check is not general row
-  versioning. It cannot detect an intervening change away from and back to the
-  original status. Stronger versioning requires a deliberate schema/API change.
-- JSON stays NVARCHAR(MAX), validated by ISJSON(AdditionalData, OBJECT) in SQL.
-  It is stored once, never as a doubly encoded JSON string.
+See [technical decisions](docs/decisions.md) and
+[SQL JSON examples](database/003_json_examples.sql).
 
-See [API contract](docs/api-contract.md) and [technical decisions](docs/decisions.md).
-
-## Native SQL JSON examples
-
-Run in TaskBoard after seeding; these are also in
-[database/003_json_examples.sql](database/003_json_examples.sql):
-
-~~~sql
-USE TaskBoard;
-GO
-DECLARE @UserId INT = (SELECT MIN(Id) FROM dbo.Users);
-DECLARE @Status NVARCHAR(20) = N'Pending';
-DECLARE @Priority NVARCHAR(20) = N'High';
-
-SELECT t.Id, t.Title,
-       ISJSON(t.AdditionalData, OBJECT) AS IsValidObject,
-       JSON_VALUE(t.AdditionalData, '$.priority') AS Priority,
-       JSON_QUERY(t.AdditionalData, '$.tags') AS Tags,
-       JSON_QUERY(t.AdditionalData, '$.metadata') AS Metadata
-FROM dbo.Tasks AS t
-WHERE t.AssignedUserId = @UserId
-  AND t.Status = @Status
-  AND JSON_VALUE(t.AdditionalData, '$.priority') = @Priority
-ORDER BY t.CreatedAt DESC, t.Id DESC;
-
-SELECT t.Id, tag.[value] AS Tag
-FROM dbo.Tasks AS t
-CROSS APPLY OPENJSON(t.AdditionalData, '$.tags') AS tag
-ORDER BY t.Id, tag.[key];
-GO
-~~~
-
-The API maps JSON_VALUE into its EF query; integration tests capture the
-executed SQL to verify native filtering, combined predicates, parameterization
-and ordering. The examples alone are not the application-filter evidence.
-
-## Tests and actual verification
+## Tests and verification
 
 ~~~powershell
-dotnet restore TaskBoard.sln
-dotnet build TaskBoard.sln
 dotnet test TaskBoard.sln
-npm --prefix frontend ci
 npm --prefix frontend test -- --watch=false
 npm --prefix frontend run build
 ~~~
 
-Recorded results from local implementation verification on 7 November 2026:
+Recorded verification on 7 November 2026:
 
-| Check | Actual result |
+| Evidence | Result |
 | --- | --- |
-| Backend build | Passed, zero warnings/errors |
-| Backend tests | **91 passed, 0 failed, 0 skipped** |
-| Frontend tests | **23 passed, 0 failed, 0 skipped** across six files |
-| Frontend production build | Passed without warnings |
-| Dependency audits | No known findings in the recorded audits |
-| Real API and Angular-proxy HTTP smoke | Create/list/filter/status and 400/409/404 behavior verified across the backend/frontend checks |
-| Direct SQL persistence and constraints | Verified with actual SQL Server |
-| Automated browser interaction | Unavailable; no automated browser walkthrough completed |
-| Manual browser verification | **Passed, user-confirmed:** listing, assigned task creation, status filtering, Pending -> InProgress -> Done, persistence after reload |
-| Public repository access | **Confirmed manually by the user** |
-| Fresh-clone end-to-end walkthrough | **Pending** |
+| Automated backend tests | **91 passed**, zero failures/skips; real SQL Server integration |
+| Automated frontend tests | **23 passed**, zero failures/skips; CLI Vitest setup |
+| Backend / frontend builds | Passed without warnings/errors |
+| API / development-proxy HTTP checks | Creation, listing, filters, updates and expected errors verified |
+| Candidate-performed manual checks | Listing, assigned task creation, status filtering, Pending -> InProgress -> Done, persistence after reload, public repository access: passed |
+| Automated browser interaction | Unavailable; no automated walkthrough completed |
+| Pending checks | Fresh-clone walkthrough and unreported extended browser checks, including keyboard/responsive verification |
 
-Backend tests include seven user service cases, 15 users SQL integration cases
-and 69 tasks SQL integration cases. They cover rejected input without writes,
-the full transition matrix, JSON filtering/ordering, status conflicts and an
-assignee-deletion race. SQL fixtures consume private configuration normally,
-create dedicated TaskBoardTests_<guid> databases from the canonical script and
-drop only those databases. The test login must have create/drop database
-permissions. They do not use SQLite or EF InMemory as SQL Server evidence.
+SQL tests create dedicated GUID databases from the canonical script and clean
+them up; the test login needs create/drop database permissions. They do not use
+SQLite or EF InMemory as evidence of SQL Server behavior.
 
-Frontend tests cover validation, query parameters, creation, failed updates,
-loading/error/retry/empty/no-user states, duplicate prevention, assignee refresh
-and stale filter cancellation.
+Detailed results and remaining checks:
+[users](docs/verification/users.md),
+[tasks](docs/verification/tasks.md),
+[frontend](docs/verification/frontend.md).
 
-Browser extension access was unavailable; native Firefox automation also
-stopped because URL-policy enforcement is unsupported for that Windows browser.
-HTTP checks do not prove rendering, keyboard use or responsive behavior.
-On 7 November 2026 the user confirmed the manual browser checks recorded above
-and public repository access. These are user-reported results, not automated
-browser evidence. Keyboard/responsive checks and other unreported checklist
-items remain unverified; see [frontend verification](docs/frontend-slice.md).
+## Limitations
 
-Synthetic HTTP smoke records from tasks/frontend verification were removed.
-Existing development data was preserved: two seed users, the original Pending
-seed task, and a pre-existing synthetic users-smoke user. No generated test
-databases remain from the recorded runs; no demo credentials or database data
-are included in this repository.
-These data-cleanup results describe the earlier HTTP verification. Identifiers
-and cleanup of records from the subsequent manual check were not reported.
-
-Detailed evidence: [users](docs/users-slice.md), [tasks](docs/tasks-slice.md),
-[frontend](docs/frontend-slice.md).
-
-## Delivery scope and remaining limitations
-
-This repository is the source deliverable. The application is not deployed.
-Authentication/authorization, pagination, deletion/reassignment UI, production
-operations and stronger concurrency versioning are not implemented. Lists are
-unpaginated, and metadata has no separate versioning strategy. These are
-explicit scope limits rather than claims of production readiness.
-
-Automated browser interaction was unavailable. Core manual browser checks and
-public repository access are user-confirmed; a fresh-clone walkthrough and
-unreported extended browser checks remain pending. The annotated submission-v1
-tag identifies the final documentation commit following this manual check.
-
-The root README is the runnable setup guide. START-HERE.txt, VALIDATION.txt
-and docs/ai-prompts.txt retain historical starter-kit/preparation context;
-do not rerun their application-scaffolding steps over this implementation.
+The application is not deployed. Authentication/authorization, pagination,
+deletion/reassignment UI, production operations and stronger concurrency
+versioning are outside the implemented scope. Metadata has no separate versioning
+strategy. The original-status concurrency limitation and pending checks above
+remain explicit. The existing submission-v1 tag preserves the manually verified
+submission snapshot; subsequent documentation cleanup does not move that tag.

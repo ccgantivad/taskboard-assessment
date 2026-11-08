@@ -1,4 +1,4 @@
-# Users slice verification
+# Users API verification
 
 The API consumes `ConnectionStrings:DefaultConnection` through standard ASP.NET
 configuration, including the API project's user-secrets in Development. Never
