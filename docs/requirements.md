@@ -2,8 +2,11 @@
 
 This is the implementation checklist derived from the supplied assessment.
 The API and Angular application are implemented. Automated and HTTP verification
-results are recorded in the slice documents; manual browser verification and a
-fresh-clone walkthrough remain pending. Use the root README for current setup.
+results are recorded in the slice documents. The user confirmed manual task
+listing, assigned task creation, status filtering, Pending -> InProgress -> Done,
+persistence after reload and public repository access. A fresh-clone walkthrough
+and unreported extended browser checks remain pending. Use the root README for
+current setup.
 
 | Requirement | Acceptance evidence |
 | --- | --- |

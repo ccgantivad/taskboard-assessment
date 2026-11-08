@@ -61,19 +61,37 @@ Real HTTP checks through the Angular proxy returned 200 for the application,
 users/tasks lists and combined filters; 201 for synthetic user/task creation;
 200 for Pending -> InProgress -> Done; 409 for direct Pending -> Done; and 400
 for whitespace-title creation. Direct SQL verified persistence, then removed
-only the generated synthetic task and user. The database remains at three users
+only the generated synthetic task and user. At the end of those HTTP checks,
+the database contained three users
 (including the pre-existing users-smoke record) and one original Pending task.
 Both seed users remain intact; no test databases remain.
 
 ## Browser verification limitation
 
-A real browser interaction walkthrough was attempted, but not executed.
+Automated browser interaction was attempted, but not executed.
 The browser extension host was unavailable. Native Firefox control then stopped
 because browser URL-policy enforcement is not supported for this Windows browser.
 No further browser-control path was attempted. HTTP checks are not browser
 rendering, keyboard, responsiveness or visual evidence.
 
-## Manual browser checklist â€” unexecuted
+## Manual browser results reported by the user: 7 November 2026
+
+The user confirmed that these checks passed in a real browser:
+
+- Task listing.
+- Creation of a task with an assigned user.
+- Status filtering.
+- Pending -> InProgress -> Done.
+- Persistence after reloading the page.
+- Manual access to the public GitHub repository.
+
+These are user-reported manual results. Automated browser interaction remained
+unavailable; no automated browser walkthrough is claimed. The user did not
+report the additional checks below (such as user creation, priority/user filters,
+failure-state behavior, keyboard use or responsive layouts), so those remain
+unverified. Manual demo record identifiers and cleanup were not reported.
+
+## Extended manual browser checklist - remaining items unverified
 
 Start API and frontend in separate terminals using the root README commands.
 
@@ -95,5 +113,7 @@ Start API and frontend in separate terminals using the root README commands.
    Verify no horizontal page overflow and visible keyboard focus.
 8. Record and clean up only the synthetic manual demo records, preserving seeds.
 
-These manual steps may create additional records; none were created through a
-browser during this implementation.
+The core checks listed above passed according to the user. This extended list
+also includes checks beyond the reported scope; do not treat it as fully passed.
+Any manual demo records should be identified before cleanup; no additional
+cleanup was performed or claimed as part of this documentation-only update.

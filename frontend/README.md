@@ -32,4 +32,6 @@ npm --prefix frontend run build
 failed status changes, duplicate prevention, loading/errors and stale filters.
 Production output is frontend/dist/taskboard/browser/.
 See ../docs/frontend-slice.md for actual results, HTTP proxy checks, cleanup,
-and the unexecuted manual browser checklist. No e2e runner is configured.
+and user-confirmed core manual browser results. Extended checks not reported by
+the user remain unverified. Automated browser interaction was unavailable;
+no e2e runner is configured.

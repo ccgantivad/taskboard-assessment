@@ -255,8 +255,9 @@ Recorded results from local implementation verification on 7 November 2026:
 | Dependency audits | No known findings in the recorded audits |
 | Real API and Angular-proxy HTTP smoke | Create/list/filter/status and 400/409/404 behavior verified across the backend/frontend checks |
 | Direct SQL persistence and constraints | Verified with actual SQL Server |
-| Automated browser interaction | Unavailable; no browser walkthrough completed |
-| Manual browser verification | **Pending** |
+| Automated browser interaction | Unavailable; no automated browser walkthrough completed |
+| Manual browser verification | **Passed, user-confirmed:** listing, assigned task creation, status filtering, Pending -> InProgress -> Done, persistence after reload |
+| Public repository access | **Confirmed manually by the user** |
 | Fresh-clone end-to-end walkthrough | **Pending** |
 
 Backend tests include seven user service cases, 15 users SQL integration cases
@@ -274,14 +275,18 @@ and stale filter cancellation.
 Browser extension access was unavailable; native Firefox automation also
 stopped because URL-policy enforcement is unsupported for that Windows browser.
 HTTP checks do not prove rendering, keyboard use or responsive behavior.
-Follow the **unexecuted manual checklist** in
-[frontend verification](docs/frontend-slice.md) before claiming those checks pass.
+On 7 November 2026 the user confirmed the manual browser checks recorded above
+and public repository access. These are user-reported results, not automated
+browser evidence. Keyboard/responsive checks and other unreported checklist
+items remain unverified; see [frontend verification](docs/frontend-slice.md).
 
 Synthetic HTTP smoke records from tasks/frontend verification were removed.
 Existing development data was preserved: two seed users, the original Pending
 seed task, and a pre-existing synthetic users-smoke user. No generated test
 databases remain from the recorded runs; no demo credentials or database data
 are included in this repository.
+These data-cleanup results describe the earlier HTTP verification. Identifiers
+and cleanup of records from the subsequent manual check were not reported.
 
 Detailed evidence: [users](docs/users-slice.md), [tasks](docs/tasks-slice.md),
 [frontend](docs/frontend-slice.md).
@@ -294,9 +299,10 @@ operations and stronger concurrency versioning are not implemented. Lists are
 unpaginated, and metadata has no separate versioning strategy. These are
 explicit scope limits rather than claims of production readiness.
 
-Automated browser interaction was unavailable; manual browser verification and
-a fresh-clone walkthrough are pending. No submission-v1 tag has been created;
-tagging is reserved for after the manual check.
+Automated browser interaction was unavailable. Core manual browser checks and
+public repository access are user-confirmed; a fresh-clone walkthrough and
+unreported extended browser checks remain pending. The annotated submission-v1
+tag identifies the final documentation commit following this manual check.
 
 The root README is the runnable setup guide. START-HERE.txt, VALIDATION.txt
 and docs/ai-prompts.txt retain historical starter-kit/preparation context;
