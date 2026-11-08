@@ -1,6 +1,6 @@
 # Proposed API contract
 
-These are design decisions for implementation, not already implemented routes.
+The users and tasks backend routes below are implemented and verified locally.
 Base URL: `http://localhost:5000`. Angular dev server: `http://localhost:4200`.
 Configure the API to allow that exact dev origin through CORS or use a local
 Angular proxy. Keep production origins separate.
@@ -66,6 +66,7 @@ assignedUserId, assignedUserName, createdAt and additionalData. Use ISO 8601 UTC
 | Invalid title, fields, enum, query or unknown assignee | 400 |
 | Task not found for status update | 404 |
 | Forbidden Pending -> Done transition | 409 |
+| Concurrent status change detected during update | 409 |
 | Unhandled server fault | 500 with generic message and traceId |
 
 Use application/problem+json with type, title, status, detail and traceId;

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using TaskBoard.Api.Data;
 using TaskBoard.Api.Repositories;
@@ -31,16 +32,26 @@ builder.Services.AddDbContext<TaskBoardDbContext>(options =>
         ?? throw new InvalidOperationException("The database connection is not configured.")));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+builder.Services.AddScoped<TaskService>();
 
 var app = builder.Build();
 
 // Always return a generic fault response, including in Development.
-app.UseExceptionHandler(errorApp => errorApp.Run(context => Results.Problem(
-    statusCode: StatusCodes.Status500InternalServerError,
-    title: "An unexpected error occurred.",
-    detail: "Please try again later.",
-    extensions: new Dictionary<string, object?> { ["traceId"] = context.TraceIdentifier })
-    .ExecuteAsync(context)));
+app.UseExceptionHandler(new ExceptionHandlerOptions
+{
+    AllowStatusCode404Response = true,
+    ExceptionHandler = context =>
+    {
+        var expected = context.Features.Get<IExceptionHandlerFeature>()?.Error as ApiProblemException;
+        var status = expected?.StatusCode ?? StatusCodes.Status500InternalServerError;
+        return Results.Problem(
+            statusCode: status,
+            title: status switch { 400 => "Invalid request.", 404 => "Resource not found.", 409 => "Request conflict.", _ => "An unexpected error occurred." },
+            detail: expected?.Message ?? "Please try again later.",
+            extensions: new Dictionary<string, object?> { ["traceId"] = context.TraceIdentifier }).ExecuteAsync(context);
+    }
+});
 
 if (app.Environment.IsDevelopment())
 {
