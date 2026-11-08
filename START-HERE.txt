@@ -1,4 +1,7 @@
 TASKBOARD CONFIGURATION STARTER
+HISTORICAL STARTER GUIDE: the API and Angular application are now implemented.
+Use the root README.md for current setup and verification. Do not rerun the
+scaffolding steps below over the completed projects.
 Prepared for Cristian Gantiva - 07 November 2026
 
 This package provides configuration, requirements, prompts and SQL reference

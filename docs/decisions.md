@@ -1,7 +1,7 @@
 # Technical decisions for the timed assessment
 
-These are proposed decisions. Keep this file aligned with the actual code and
-record changes when evidence justifies a different choice.
+These decisions describe the implemented assessment. Production follow-ups below
+are explicitly future work. Record changes when evidence justifies a different choice.
 
 | Decision | Reason | Tradeoff / revisit trigger |
 | --- | --- | --- |

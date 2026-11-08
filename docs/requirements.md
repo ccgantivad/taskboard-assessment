@@ -1,8 +1,9 @@
 # Assessment acceptance checklist
 
 This is the implementation checklist derived from the supplied assessment.
-The starter kit contains configuration and SQL reference material; the API and
-Angular application still need implementation.
+The API and Angular application are implemented. Automated and HTTP verification
+results are recorded in the slice documents; manual browser verification and a
+fresh-clone walkthrough remain pending. Use the root README for current setup.
 
 | Requirement | Acceptance evidence |
 | --- | --- |
