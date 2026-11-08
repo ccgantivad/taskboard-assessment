@@ -1,0 +1,67 @@
+<form [formGroup]="form" (ngSubmit)="submit()" aria-labelledby="create-task-heading">
+  @if (!usersLoading() && !users().length) {
+    <p class="notice">Create a user below to assign your first task.</p>
+  }
+  <fieldset [disabled]="submitting() || usersLoading() || !users().length">
+    <label for="task-title">Title <span class="required">*</span></label>
+    <input
+      id="task-title"
+      formControlName="title"
+      placeholder="What needs to get done?"
+      aria-describedby="title-help"
+      [attr.aria-invalid]="form.controls.title.touched && form.controls.title.invalid"
+    />
+    <small
+      id="title-help"
+      [class.field-error]="form.controls.title.touched && form.controls.title.invalid"
+      >Required. Up to 200 characters after trimming.</small
+    >
+    <label for="task-assignee">Assignee <span class="required">*</span></label>
+    <select
+      id="task-assignee"
+      formControlName="assignedUserId"
+      [attr.aria-invalid]="
+        form.controls.assignedUserId.touched && form.controls.assignedUserId.invalid
+      "
+    >
+      <option [ngValue]="null">Select a person</option>
+      @for (user of users(); track user.id) {
+        <option [ngValue]="user.id">{{ user.name }}</option>
+      }
+    </select>
+    @if (form.controls.assignedUserId.touched && form.controls.assignedUserId.invalid) {
+      <small class="field-error">Choose an existing assignee.</small>
+    }
+    <div class="form-pair">
+      <div>
+        <label for="task-priority">Priority</label
+        ><select id="task-priority" formControlName="priority">
+          <option value="">Not set</option>
+          @for (priority of priorities; track priority) {
+            <option [value]="priority">{{ priority }}</option>
+          }
+        </select>
+      </div>
+      <div>
+        <label for="task-due">Due date</label
+        ><input id="task-due" type="date" formControlName="dueDate" />
+        @if (form.controls.dueDate.invalid) {
+          <small class="field-error">Enter a valid date.</small>
+        }
+      </div>
+    </div>
+    <label for="task-tags">Tags <span class="optional">optional</span></label>
+    <input
+      id="task-tags"
+      formControlName="tags"
+      placeholder="review, design, operations"
+      aria-describedby="tags-help"
+    /><small id="tags-help">Separate tags with commas.</small>
+    <button class="primary full" type="submit" [disabled]="submitting()">
+      {{ submitting() ? 'Creating task…' : 'Create task' }}
+    </button>
+  </fieldset>
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+</form>

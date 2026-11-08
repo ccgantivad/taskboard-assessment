@@ -1,9 +1,11 @@
-# Proposed API contract
+# API contract
 
 The users and tasks backend routes below are implemented and verified locally.
-Base URL: `http://localhost:5000`. Angular dev server: `http://localhost:4200`.
-Configure the API to allow that exact dev origin through CORS or use a local
-Angular proxy. Keep production origins separate.
+Start the API explicitly with `dotnet run --project backend/TaskBoard.Api --urls
+http://localhost:5000`. The generated launch profile alone defaults to 5237;
+the explicit command selects the verified integration port 5000. Angular runs
+at `http://localhost:4200` and proxies relative `/api` requests to
+`http://127.0.0.1:5000`. Production hosting must route `/api` to the API separately.
 
 | Method and route | Request | Success |
 | --- | --- | --- |
@@ -40,12 +42,12 @@ resource URL. Empty filtered lists return 200 with `[]`.
 { "status": "InProgress" }
 ```
 
-Prefer a typed AdditionalDataDto for priority, dueDate and tags, with a free
-metadata dictionary. An object-valued JsonElement is an alternative if its shape
-is explicitly validated. Do not expose a doubly encoded JSON string. Serialize
-once for NVARCHAR(MAX) storage and return an object in the response. Reject a
-non-object payload and invalid known metadata fields. Omitted additionalData
-may default to `{}`. Free metadata fields stay free.
+The implemented request uses an object-valued JsonElement. Omitted additionalData
+defaults to `{}`; explicit null, arrays and scalars are rejected. Optional known
+fields are priority (`Low`, `Medium`, `High`), dueDate (valid `yyyy-MM-dd`), tags
+(string array), and metadata (free JSON object). Duplicate top-level keys are
+rejected; unknown fields are preserved. Storage contains JSON once and responses
+return an object. The frontend exposes priority, dueDate and comma-separated tags.
 
 GET example:
 `/api/tasks?userId=1&status=Pending&priority=High`

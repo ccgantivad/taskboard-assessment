@@ -1,0 +1,171 @@
+<a class="skip-link" href="#task-list">Skip to tasks</a>
+<header class="topbar">
+  <a class="brand" href="/" aria-label="TaskBoard home"
+    ><span class="brand-mark">t·</span>TaskBoard</a
+  ><span class="workspace">TEAM WORKSPACE <span aria-hidden="true">●</span> Operations</span>
+</header>
+<main>
+  <div class="page-heading">
+    <div>
+      <p class="eyebrow">TEAM WORKSPACE</p>
+      <h1>A clear view of the work.</h1>
+      <p class="subtitle">Assign, prioritize and keep things moving.</p>
+    </div>
+    <span class="today">Simple plans. Steady progress.</span>
+  </div>
+  @if (notice()) {
+    <p class="success" role="status">{{ notice() }}</p>
+  }
+  <div class="workspace-grid">
+    <section class="work-panel" id="task-list" aria-labelledby="tasks-heading" tabindex="-1">
+      <div class="section-heading">
+        <div>
+          <h2 id="tasks-heading">
+            Tasks <span class="count">{{ loading() ? '…' : tasks().length }}</span>
+          </h2>
+          <p>Newest first. Every task has an owner.</p>
+        </div>
+        <button class="text-button" type="button" (click)="reload()" [disabled]="loading()">
+          ↻ Refresh
+        </button>
+      </div>
+      <form class="filters" [formGroup]="filters" aria-label="Filter tasks">
+        <div>
+          <label for="filter-status">Status</label
+          ><select id="filter-status" formControlName="status">
+            <option value="">All statuses</option>
+            @for (status of statuses; track status) {
+              <option [value]="status">
+                {{ status === 'InProgress' ? 'In progress' : status }}
+              </option>
+            }
+          </select>
+        </div>
+        <div>
+          <label for="filter-user">Assignee</label
+          ><select id="filter-user" formControlName="userId" [attr.aria-busy]="usersLoading()">
+            <option value="">Everyone</option>
+            @for (user of users(); track user.id) {
+              <option [value]="user.id">{{ user.name }}</option>
+            }
+          </select>
+        </div>
+        <div>
+          <label for="filter-priority">Priority</label
+          ><select id="filter-priority" formControlName="priority">
+            <option value="">All priorities</option>
+            @for (priority of priorities; track priority) {
+              <option [value]="priority">{{ priority }}</option>
+            }
+          </select>
+        </div>
+      </form>
+      <div [attr.aria-busy]="loading()" class="task-results">
+        @if (loading()) {
+          <div class="empty" role="status">
+            <span class="loading-dot"></span>
+            <h3>Loading tasks…</h3>
+            <p>Getting the latest work from your team.</p>
+          </div>
+        } @else if (error()) {
+          <div class="empty">
+            <p class="error" role="alert">{{ error() }}</p>
+            <button type="button" class="secondary" (click)="reload()">Try again</button>
+          </div>
+        } @else if (!tasks().length) {
+          <div class="empty">
+            <span class="empty-icon">✓</span>
+            <h3>No tasks here yet</h3>
+            <p>Try different filters or create a task to get started.</p>
+          </div>
+        } @else {
+          <div class="list-caption" aria-hidden="true">
+            <span>TASK / ASSIGNEE</span><span>PRIORITY</span><span>STATUS</span>
+          </div>
+          <ul class="task-list">
+            @for (task of tasks(); track task.id) {
+              <li class="task-row">
+                <div class="task-details">
+                  <h3>{{ task.title }}</h3>
+                  <p>
+                    <span class="avatar" aria-hidden="true">{{
+                      task.assignedUserName.slice(0, 1).toUpperCase()
+                    }}</span
+                    ><span>{{ task.assignedUserName }}</span
+                    ><span class="date"
+                      >· {{ task.createdAt | date: 'MMM d, y, HH:mm' }}
+                      <span class="optional">local</span></span
+                    >
+                  </p>
+                  @if (task.additionalData.dueDate) {
+                    <small>Due {{ task.additionalData.dueDate }}</small>
+                  }
+                  @if (task.additionalData.tags?.length) {
+                    <div class="tags">
+                      @for (tag of task.additionalData.tags; track $index) {
+                        <span>{{ tag }}</span>
+                      }
+                    </div>
+                  }
+                </div>
+                <div class="priority" [class.high]="task.additionalData.priority === 'High'">
+                  <span aria-hidden="true">{{ task.additionalData.priority ? '●' : '—' }}</span>
+                  {{ task.additionalData.priority || 'Not set' }}
+                </div>
+                <div class="task-state">
+                  <span
+                    class="status-label"
+                    [class.done]="task.status === 'Done'"
+                    [class.in-progress]="task.status === 'InProgress'"
+                    >{{ task.status === 'InProgress' ? 'In progress' : task.status }}</span
+                  ><app-status-control
+                    [status]="task.status"
+                    [title]="task.title"
+                    [busy]="updating().has(task.id)"
+                    (requested)="updateStatus(task, $event)"
+                  />
+                  @if (statusErrors()[task.id]) {
+                    <small class="field-error" role="alert">{{ statusErrors()[task.id] }}</small>
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+      <footer class="list-footer">
+        Changes appear after the server confirms.<span>Only Pending → Done is restricted.</span>
+      </footer>
+    </section>
+    <aside>
+      <section class="composer" aria-labelledby="create-task-heading">
+        <p class="eyebrow">MAKE THE NEXT MOVE</p>
+        <h2 id="create-task-heading">Create a task</h2>
+        <p class="panel-description">A little clarity goes a long way.</p>
+        @if (usersLoading()) {
+          <p role="status" class="notice">Loading assignees…</p>
+        }
+        @if (usersError()) {
+          <p class="error" role="alert">{{ usersError() }}</p>
+          <button class="text-button" type="button" (click)="reloadUsers()">Retry assignees</button>
+        }
+        <app-task-form
+          [users]="users()"
+          [usersLoading]="usersLoading()"
+          (created)="taskCreated()"
+        />
+      </section>
+      <section class="people-panel">
+        <details>
+          <summary>Add a person <span aria-hidden="true">+</span></summary>
+          <p class="panel-description">Make them available as an assignee.</p>
+          <app-user-form (created)="userCreated($event)" />
+        </details>
+      </section>
+      <p class="sidebar-note">One shared view.<br />One less thing to keep in your head.</p>
+    </aside>
+  </div>
+</main>
+<footer class="site-footer">
+  <span>TaskBoard / Team workspace</span><span>Built for work that moves forward.</span>
+</footer>
